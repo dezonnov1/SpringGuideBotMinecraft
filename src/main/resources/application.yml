@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+telegram:
+  bot:
+    token: ${BOT_TOKEN}
+
+spring:
+  application:
+    name: minecraft-helper-bot
+
+  datasource:
+    url: ${DB_URL}       # Например: jdbc:postgresql://db:5432/minecraft_bot
+    username: ${DB_USER} # Например: postgres
+    password: ${DB_PASS} # Например: superPassword
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Flyway сам создаст таблицы, Hibernate только проверяет
+    show-sql: false      # Можно включить только для отладки
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
