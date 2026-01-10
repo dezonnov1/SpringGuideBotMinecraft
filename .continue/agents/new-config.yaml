@@ -1,0 +1,31 @@
+name: Gemini Config
+version: 1.0.0
+schema: v1
+
+# Модели
+models:
+  # Gemini 1.5 Pro для написания кода (основная модель)
+  - name: Gemini 3 Pro
+    provider: google-generative-ai
+    model: gemini-3-pro
+    apiKey: AIzaSyAjUews_0ZMHnDy9P2cnaxhRo0CEN6x68A
+    role: chat
+
+  # Gemini 1.5 Flash для быстрых ответов и документации
+  - name: Gemini 3 Flash
+    provider: google-generative-ai
+    model: gemini-3-flash
+    apiKey: AIzaSyAjUews_0ZMHnDy9P2cnaxhRo0CEN6x68A
+    role: chat
+
+# Настройки функций (какая модель за что отвечает)
+# В Continue можно явно указать модель для редактирования и автодополнения
+tabAutocompleteModel:
+  name: Gemini 3 Flash
+  provider: google-generative-ai
+  model: gemini-3-flash
+  apiKey: AIzaSyAjUews_0ZMHnDy9P2cnaxhRo0CEN6x68A
+
+# MCP Серверы
+mcpServers:
+  - uses: anthropic/memory-mcp

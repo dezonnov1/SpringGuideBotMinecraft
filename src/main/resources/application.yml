@@ -1,25 +1,50 @@
-server:
-  port: 8080
+version: '3.8'
 
-telegram:
-  bot:
-    token: ${BOT_TOKEN}
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: minecraft_bot_db
+    restart: always
+    environment:
+      POSTGRES_DB: guide_db        # Имя базы данных
+      POSTGRES_USER: postgres      # Имя пользователя БД
+      POSTGRES_PASSWORD: password  # Пароль БД (совпадает с DB_PASS ниже)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bot-network
 
-spring:
-  application:
-    name: minecraft-helper-bot
+  app:
+    build: .
+    container_name: minecraft_bot_app
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      
+      # 1. Токен бота
+      BOT_TOKEN: YOUR_BOT_TOKEN
+      
+      # 2. Настройки подключения к БД
+      # Важно: хост "db" — это имя сервиса базы данных выше
+      DB_URL: jdbc:postgresql://db:5432/guide_db
+      # 1. Токен бота
+      DB_USER: postgres
+      # 1. Токен бота
+      DB_PASS: password
 
-  datasource:
-    url: ${DB_URL}       # Например: jdbc:postgresql://db:5432/minecraft_bot
-    username: ${DB_USER} # Например: postgres
-    password: ${DB_PASS} # Например: superPassword
-    driver-class-name: org.postgresql.Driver
+    networks:
+      - bot-network
 
-  jpa:
-    hibernate:
-      ddl-auto: validate # Flyway создаст таблицы
-    show-sql: false      # Включать только для отладки
+volumes:
+  pgdata:
 
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
+networks:
+  bot-network:
+    driver: bridge
