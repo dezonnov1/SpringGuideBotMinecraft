@@ -3,12 +3,14 @@ package com.dezonnov1.SpringGuideBotMinecraft.service;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.DeleteWebhook;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetMeResponse;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +29,8 @@ public class TelegramBotService {
     private String botToken;
 
     private TelegramBot bot;
+    private final BotInfoHolder botInfoHolder;
+
 
     @PostConstruct
     public void init() {
@@ -36,8 +40,18 @@ public class TelegramBotService {
         // удаляем старый вебхук
         // Если этого не сделать, getUpdates может не приходить
         bot.execute(new DeleteWebhook());
+        log.info("Старый Webhook удален");
 
-        log.info("Бот инициализирован. Webhook удален. Жду сообщений...");
+        GetMeResponse botInfoResponse = bot.execute(new GetMe());
+
+        if (botInfoResponse.isOk()) {
+            botInfoHolder.setBotUsername(botInfoResponse.user().username());
+            botInfoHolder.setBotFirstName(botInfoResponse.user().firstName());
+            log.info("Бот запущен: {} (@{})", botInfoHolder.getBotFirstName(),
+                    botInfoHolder.getBotUsername());
+        } else {
+            log.error("Не удалось получить информацию о боте: {}", botInfoResponse.description());
+        }
 
         // 3. Регистрируем слушатель
         bot.setUpdatesListener(updates -> {
