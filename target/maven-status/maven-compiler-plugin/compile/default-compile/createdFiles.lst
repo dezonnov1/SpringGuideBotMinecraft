@@ -1,0 +1,11 @@
+com\dezonnov1\SpringGuideBotMinecraft\service\DialogManager.class
+com\dezonnov1\SpringGuideBotMinecraft\handler\ServerPropertiesInputHandler.class
+com\dezonnov1\SpringGuideBotMinecraft\SpringGuideBotMinecraftApplication.class
+com\dezonnov1\SpringGuideBotMinecraft\entity\UserSession.class
+com\dezonnov1\SpringGuideBotMinecraft\entity\BotState.class
+com\dezonnov1\SpringGuideBotMinecraft\repository\UserSessionRepository.class
+com\dezonnov1\SpringGuideBotMinecraft\service\TelegramBotService.class
+com\dezonnov1\SpringGuideBotMinecraft\entity\UserSession$UserSessionBuilder.class
+com\dezonnov1\SpringGuideBotMinecraft\handler\StartHandler.class
+com\dezonnov1\SpringGuideBotMinecraft\handler\DialogHandler.class
+com\dezonnov1\SpringGuideBotMinecraft\handler\ServerPropertiesMenuHandler.class
