@@ -3,17 +3,14 @@ package com.dezonnov1.SpringGuideBotMinecraft.service;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.DeleteWebhook;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetMeResponse;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,24 +21,18 @@ import java.util.List;
 public class TelegramBotService {
 
     private final DialogManager dialogManager;
-
-    @Value("${telegram.bot.token}")
-    private String botToken;
-
-    private TelegramBot bot;
+    private final TelegramBot bot;
     private final BotInfoHolder botInfoHolder;
 
 
     @PostConstruct
     public void init() {
-        // 1. Создаем бота
-        bot = new TelegramBot(botToken);
-
-        // удаляем старый вебхук
+        // Удаляем старый вебхук
         // Если этого не сделать, getUpdates может не приходить
         bot.execute(new DeleteWebhook());
         log.info("Старый Webhook удален");
 
+        // Получаем информацию о самом боте получение данных о боте для вставки ссылки в ответы
         GetMeResponse botInfoResponse = bot.execute(new GetMe());
 
         if (botInfoResponse.isOk()) {
@@ -53,7 +44,7 @@ public class TelegramBotService {
             log.error("Не удалось получить информацию о боте: {}", botInfoResponse.description());
         }
 
-        // 3. Регистрируем слушатель
+        // Регистрируем слушатель
         bot.setUpdatesListener(updates -> {
             for (Update update : updates) {
                 try {
@@ -77,10 +68,10 @@ public class TelegramBotService {
                         }
                     }
                 } catch (Exception e) {
-                    // Если ошибка случилась в нашей логике - выводим стек
                     log.error("КРИТИЧЕСКАЯ ОШИБКА ПРИ ОБРАБОТКЕ UPDATE: ", e);
                 }
             }
+
             // Всегда подтверждаем получение, чтобы не зациклить ошибку
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         }, e -> {

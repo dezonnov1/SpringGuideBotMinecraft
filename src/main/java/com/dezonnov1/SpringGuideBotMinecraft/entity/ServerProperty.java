@@ -20,7 +20,7 @@ public class ServerProperty {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String parameter; // например "enable-command-block"
+    private String parameter;
 
     @Column(name = "possible_values", columnDefinition = "TEXT")
     private String possibleValues;
@@ -34,7 +34,7 @@ public class ServerProperty {
     @Column(columnDefinition = "TEXT")
     private String recommendation;
 
-    // Самое важное: Настройка связи Many-to-Many
+    // Настройка связи Many-to-Many для postgre
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "server_property_versions",

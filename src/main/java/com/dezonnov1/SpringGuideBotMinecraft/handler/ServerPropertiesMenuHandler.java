@@ -31,6 +31,7 @@ public class ServerPropertiesMenuHandler implements DialogHandler {
         List<BaseRequest<?, ?>> responses = new ArrayList<>();
         Long chatId = session.getChatId();
 
+        // Отправляем подтверждение нажатия кнопки (чтобы убрать часики загрузки)
         responses.add(new AnswerCallbackQuery(update.callbackQuery().id()));
 
         String text = """
@@ -39,7 +40,7 @@ public class ServerPropertiesMenuHandler implements DialogHandler {
                 Этот файл отвечает за генерацию мира и правила сервера\\.
                 Бот добавит комментарии к каждому параметру\\.
                 
-                *Введите версию игры* \\(например: `1\\.16\\.5`\\), чтобы получить готовый файл\\.
+                *Введите версию игры* \\(например: `1\\.16\\.5`\\), или отправьте свой `server.properties` чтобы получить готовый файл\\.
                 """;
 
         SendMessage request = new SendMessage(chatId, text).parseMode(ParseMode.MarkdownV2);
@@ -52,7 +53,7 @@ public class ServerPropertiesMenuHandler implements DialogHandler {
         request.replyMarkup(keyboard);
 
         responses.add(request);
-
+        // Переводим бота в состояние ожидания ввода версии
         return new HandlerResult(responses, BotState.WAITING_FOR_SP_INPUT);
     }
 }

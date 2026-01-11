@@ -25,18 +25,19 @@ public class DialogManager {
 
     @Transactional
     public List<BaseRequest<?, ?>> processUpdate(Update update) {
+        // Если пришло не сообщение и не коллбэк от кнопки
         if (update.message() == null && update.callbackQuery() == null) {
             return Collections.emptyList();
         }
 
-        //
+        // Получаем ID чата в зависимости от типа обновления
         Long chatId = update.message() != null ? update.message().chat().id() : update.callbackQuery().message().chat().id();
 
-        // 1. Получаем или создаем сессию
+        // Получаем или создаем сессию
         UserSession session = sessionRepository.findById(chatId)
                 .orElseGet(() -> createNewSession(chatId));
 
-        // 2. Ищем подходящий хендлер
+        // Ищем подходящий хендлер
         DialogHandler handler = handlers.stream()
                 .filter(h -> h.isApplicable(session.getState(), update))
                 .findFirst()

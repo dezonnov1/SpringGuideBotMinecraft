@@ -6,7 +6,11 @@ import com.dezonnov1.SpringGuideBotMinecraft.entity.ServerProperty;
 import com.dezonnov1.SpringGuideBotMinecraft.entity.UserSession;
 import com.dezonnov1.SpringGuideBotMinecraft.repository.ServerPropertyRepository;
 import com.dezonnov1.SpringGuideBotMinecraft.service.BotInfoHolder;
+import com.dezonnov1.SpringGuideBotMinecraft.utils.ServerPropertiesUtils; // Импорт утилиты
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendDocument;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -18,21 +22,35 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Хендлер возвращающий файл server.properties для указанной версии игры.
+ * Отвечает за:
+ * 1. Чтение версии игры
+ * 2. Отправку файла server.properties нужной версии с комментариями
+ */
+
 @Component
 @RequiredArgsConstructor
 public class ServerPropertiesInputHandler implements DialogHandler {
-
+    // Репозитории для работы с базой данных
     private final ServerPropertyRepository propertyRepository;
     private final BotInfoHolder botInfoHolder;
 
+    // Хендлер для возврата в главное меню
     @Lazy
     private final StartHandler startHandler;
 
-    private static final int MAX_LINE_LENGTH = 100;
-
+    // Метод возвращающий подходит ли этот хендлер для запроса пользователя
     @Override
     public boolean isApplicable(BotState currentState, Update update) {
-        return currentState == BotState.WAITING_FOR_SP_INPUT;
+        if (currentState != BotState.WAITING_FOR_SP_INPUT) {
+            return false;
+        }
+
+        if (update.message() != null && update.message().document() != null) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -40,20 +58,16 @@ public class ServerPropertiesInputHandler implements DialogHandler {
         Long chatId = session.getChatId();
         List<BaseRequest<?, ?>> responses = new ArrayList<>();
 
-        // 1. Логика отмены (тут у нас всё работало)
+        // Логика отмены, если пользователь передумал
         if (update.callbackQuery() != null) {
             String data = update.callbackQuery().data();
-
-            // Сравниваем с Enum CANCEL_INPUT
             if (BotAction.CANCEL_INPUT.getCallbackData().equals(data)) {
                 responses.add(new SendMessage(chatId, "Ввод отменен. Возвращаюсь в главное меню."));
                 responses.add(startHandler.getWelcomeMessage(chatId));
-
                 return new HandlerResult(responses, BotState.MAIN_MENU);
             }
         }
 
-        // === 2. ЛОГИКА ВВОДА ===
         if (update.message() != null && update.message().text() != null) {
             String versionInput = update.message().text().trim();
             List<ServerProperty> properties = propertyRepository.findAllByVersionName(versionInput);
@@ -62,6 +76,12 @@ public class ServerPropertiesInputHandler implements DialogHandler {
                 SendMessage error = new SendMessage(chatId,
                         "Для версии " + versionInput + " у меня нет данных.\n" +
                                 "Попробуйте, например: 1.16.5 или 1.20.1");
+                // Кнопка отмены с действием CANCEL_INPUT
+                InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
+                        new InlineKeyboardButton("В меню")
+                                .callbackData(BotAction.CANCEL_INPUT.getCallbackData())
+                );
+                error.replyMarkup(keyboard);
                 return new HandlerResult(List.of(error), null);
             }
 
@@ -70,57 +90,36 @@ public class ServerPropertiesInputHandler implements DialogHandler {
             sb.append("# Для сервера версии: %s\n\n".formatted(versionInput));
 
             for (ServerProperty prop : properties) {
-                appendFormattedComment(sb, prop.getDescription());
+                ServerPropertiesUtils.appendFormattedComment(sb, prop.getDescription());
                 if (prop.getRecommendation() != null && !prop.getRecommendation().isEmpty()) {
-                    appendFormattedComment(sb, "Рекомендация: " + prop.getRecommendation());
+                    ServerPropertiesUtils.appendFormattedComment(sb, "Рекомендация: " + prop.getRecommendation());
                 }
                 sb.append(prop.getParameter())
                         .append("=")
                         .append(prop.getDefaultValue())
                         .append("\n\n");
             }
-
             byte[] fileBytes = sb.toString().getBytes(StandardCharsets.UTF_8);
-
             SendDocument doc = new SendDocument(chatId, fileBytes)
                     .fileName("server.properties")
                     .caption("Готово! Вот ваш файл настроек для версии " + versionInput);
 
             responses.add(doc);
-
             responses.add(startHandler.getWelcomeMessage(chatId));
 
             return new HandlerResult(responses, BotState.MAIN_MENU);
         }
+        // Пользователь отправил невалидный ответ
+        SendMessage response = new SendMessage(chatId, "*Введите версию игры* \\(например: `1\\.16\\.5`\\)," +
+                " или отправьте свой `server.properties` чтобы получить готовый файл\\.")
+                .parseMode(ParseMode.MarkdownV2);
 
-        return new HandlerResult(
-                List.of(new SendMessage(chatId, "Пожалуйста, напишите версию Minecraft текстом или нажмите 'Отмена'.")),
-                null
+        // Кнопка отмены с действием CANCEL_INPUT
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
+                new InlineKeyboardButton("В меню")
+                        .callbackData(BotAction.CANCEL_INPUT.getCallbackData())
         );
-    }
-
-    private void appendFormattedComment(StringBuilder sb, String text) {
-        if (text == null || text.isBlank()) return;
-        String[] lines = text.replace("\r", "").split("\n");
-        for (String line : lines) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
-            if (line.length() <= MAX_LINE_LENGTH) {
-                sb.append("# ").append(line).append("\n");
-            } else {
-                String[] words = line.split("\\s+");
-                StringBuilder currentLine = new StringBuilder("# ");
-                for (String word : words) {
-                    if (currentLine.length() + word.length() + 1 > MAX_LINE_LENGTH) {
-                        sb.append(currentLine).append("\n");
-                        currentLine = new StringBuilder("# ").append(word);
-                    } else {
-                        if (currentLine.length() > 2) currentLine.append(" ");
-                        currentLine.append(word);
-                    }
-                }
-                sb.append(currentLine).append("\n");
-            }
-        }
+        response.replyMarkup(keyboard);
+        return new HandlerResult(List.of(response), null);
     }
 }

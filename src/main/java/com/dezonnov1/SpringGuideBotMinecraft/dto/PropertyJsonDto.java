@@ -5,17 +5,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.util.List;
 
+/**
+ * dto для преобразования json в записи в бд
+ * Читает данные об server.properties
+ * (значения по умолчанию, описание, рекомендации и тд ) читает из json
+  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PropertyJsonDto {
 
     private String parameter;
 
-    // В JSON это "values", а в Java мы хотим "possibleValues"
     @JsonProperty("values")
     private String possibleValues;
 
-    // В JSON это "on_default", а в Java "defaultValue"
     @JsonProperty("on_default")
     private String defaultValue;
 
