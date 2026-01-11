@@ -24,19 +24,12 @@ import java.util.List;
 public class TelegramBotService {
 
     private final DialogManager dialogManager;
-
-    @Value("${telegram.bot.token}")
-    private String botToken;
-
-    private TelegramBot bot;
+    private final TelegramBot bot;
     private final BotInfoHolder botInfoHolder;
 
 
     @PostConstruct
     public void init() {
-        // 1. Создаем бота
-        bot = new TelegramBot(botToken);
-
         // удаляем старый вебхук
         // Если этого не сделать, getUpdates может не приходить
         bot.execute(new DeleteWebhook());

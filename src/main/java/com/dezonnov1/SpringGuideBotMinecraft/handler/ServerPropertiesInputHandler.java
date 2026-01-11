@@ -6,6 +6,7 @@ import com.dezonnov1.SpringGuideBotMinecraft.entity.ServerProperty;
 import com.dezonnov1.SpringGuideBotMinecraft.entity.UserSession;
 import com.dezonnov1.SpringGuideBotMinecraft.repository.ServerPropertyRepository;
 import com.dezonnov1.SpringGuideBotMinecraft.service.BotInfoHolder;
+import com.dezonnov1.SpringGuideBotMinecraft.utils.ServerPropertiesUtils; // Импорт утилиты
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendDocument;
@@ -28,11 +29,21 @@ public class ServerPropertiesInputHandler implements DialogHandler {
     @Lazy
     private final StartHandler startHandler;
 
-    private static final int MAX_LINE_LENGTH = 100;
-
     @Override
     public boolean isApplicable(BotState currentState, Update update) {
-        return currentState == BotState.WAITING_FOR_SP_INPUT;
+        // 1. Must be in the waiting for input state
+        if (currentState != BotState.WAITING_FOR_SP_INPUT) {
+            return false;
+        }
+
+        // 2. NEW CHECK: If the user sent a DOCUMENT, we skip this handler.
+        // This allows DialogManager to continue searching and find ServerPropertiesUploadHandler.
+        if (update.message() != null && update.message().document() != null) {
+            return false;
+        }
+
+        // Otherwise (text, buttons, etc.), we handle it here
+        return true;
     }
 
     @Override
@@ -40,20 +51,16 @@ public class ServerPropertiesInputHandler implements DialogHandler {
         Long chatId = session.getChatId();
         List<BaseRequest<?, ?>> responses = new ArrayList<>();
 
-        // 1. Логика отмены (тут у нас всё работало)
+        // логика отмены
         if (update.callbackQuery() != null) {
             String data = update.callbackQuery().data();
-
-            // Сравниваем с Enum CANCEL_INPUT
             if (BotAction.CANCEL_INPUT.getCallbackData().equals(data)) {
                 responses.add(new SendMessage(chatId, "Ввод отменен. Возвращаюсь в главное меню."));
                 responses.add(startHandler.getWelcomeMessage(chatId));
-
                 return new HandlerResult(responses, BotState.MAIN_MENU);
             }
         }
 
-        // === 2. ЛОГИКА ВВОДА ===
         if (update.message() != null && update.message().text() != null) {
             String versionInput = update.message().text().trim();
             List<ServerProperty> properties = propertyRepository.findAllByVersionName(versionInput);
@@ -70,10 +77,13 @@ public class ServerPropertiesInputHandler implements DialogHandler {
             sb.append("# Для сервера версии: %s\n\n".formatted(versionInput));
 
             for (ServerProperty prop : properties) {
-                appendFormattedComment(sb, prop.getDescription());
+                // ИСПОЛЬЗУЕМ УТИЛИТУ
+                ServerPropertiesUtils.appendFormattedComment(sb, prop.getDescription());
+
                 if (prop.getRecommendation() != null && !prop.getRecommendation().isEmpty()) {
-                    appendFormattedComment(sb, "Рекомендация: " + prop.getRecommendation());
+                    ServerPropertiesUtils.appendFormattedComment(sb, "Рекомендация: " + prop.getRecommendation());
                 }
+
                 sb.append(prop.getParameter())
                         .append("=")
                         .append(prop.getDefaultValue())
@@ -87,7 +97,6 @@ public class ServerPropertiesInputHandler implements DialogHandler {
                     .caption("Готово! Вот ваш файл настроек для версии " + versionInput);
 
             responses.add(doc);
-
             responses.add(startHandler.getWelcomeMessage(chatId));
 
             return new HandlerResult(responses, BotState.MAIN_MENU);
@@ -97,30 +106,5 @@ public class ServerPropertiesInputHandler implements DialogHandler {
                 List.of(new SendMessage(chatId, "Пожалуйста, напишите версию Minecraft текстом или нажмите 'Отмена'.")),
                 null
         );
-    }
-
-    private void appendFormattedComment(StringBuilder sb, String text) {
-        if (text == null || text.isBlank()) return;
-        String[] lines = text.replace("\r", "").split("\n");
-        for (String line : lines) {
-            line = line.trim();
-            if (line.isEmpty()) continue;
-            if (line.length() <= MAX_LINE_LENGTH) {
-                sb.append("# ").append(line).append("\n");
-            } else {
-                String[] words = line.split("\\s+");
-                StringBuilder currentLine = new StringBuilder("# ");
-                for (String word : words) {
-                    if (currentLine.length() + word.length() + 1 > MAX_LINE_LENGTH) {
-                        sb.append(currentLine).append("\n");
-                        currentLine = new StringBuilder("# ").append(word);
-                    } else {
-                        if (currentLine.length() > 2) currentLine.append(" ");
-                        currentLine.append(word);
-                    }
-                }
-                sb.append(currentLine).append("\n");
-            }
-        }
     }
 }

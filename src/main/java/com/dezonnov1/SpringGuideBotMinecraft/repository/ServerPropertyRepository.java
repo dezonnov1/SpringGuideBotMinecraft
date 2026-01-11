@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ServerPropertyRepository extends JpaRepository<ServerProperty, Long> {
@@ -16,4 +17,10 @@ public interface ServerPropertyRepository extends JpaRepository<ServerProperty, 
 
     // Проверка, существует ли такая версия вообще (чтобы не генерировать пустой файл)
     boolean existsByVersions_VersionName(String versionName);
+
+    /**
+     * Ищет свойство по названию параметра.
+     * Если таких свойств несколько (для разных версий), вернет первое попавшееся.
+     */
+    Optional<ServerProperty> findFirstByParameter(String parameter);
 }
