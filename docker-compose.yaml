@@ -24,11 +24,13 @@ services:
 
     container_name: minecraft_bot_app
     restart: on-failure
+    ports:
+      - "8082:8080"
     depends_on:
       db:
         condition: service_healthy
     environment:
-      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      BOT_TOKEN: ${BOT_TOKEN}
       DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       DB_USER: ${POSTGRES_USER}
       DB_PASS: ${POSTGRES_PASSWORD}
