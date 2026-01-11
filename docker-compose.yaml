@@ -6,16 +6,13 @@ services:
     container_name: minecraft_bot_db
     restart: always
     environment:
-      # Имя БД
-      POSTGRES_DB: guide_db
-      # Пользователь
-      POSTGRES_USER: postgres
-      # Пароль (лучше вынести в .env, но для старта ок)
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - pgdata:/var/lib/postgresql/data # Сохраняем данные при перезапуске
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,31 +20,24 @@ services:
       - bot-network
 
   app:
-    build: .
+    image: dezonnov1/settings-guide-bot-minecraft:v1
+
     container_name: minecraft_bot_app
     restart: on-failure
     depends_on:
       db:
-        # БД запустится (будет в кондиции)
         condition: service_healthy
     environment:
-      # Переопределяем настройки из application.yml
-      # В Docker хост БД - это имя сервиса ("db"), а не localhost
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/guide_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      
-      # Токены передаем здесь, чтобы не хранить их в коде
-      # Эти переменные должны считываться в application.yml через ${VAR_NAME}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASS: ${POSTGRES_PASSWORD}
     networks:
       - bot-network
 
-# Тома для хранения данных
 volumes:
   pgdata:
 
-# Сеть для общения контейнеров
 networks:
   bot-network:
     driver: bridge
