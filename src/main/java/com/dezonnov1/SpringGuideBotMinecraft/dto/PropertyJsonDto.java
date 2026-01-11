@@ -5,6 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.util.List;
 
+/**
+ * dto для преобразования json в записи в бд
+ * Читает данные об server.properties
+ * (значения по умолчанию, описание, рекомендации и тд ) читает из json
+  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PropertyJsonDto {
