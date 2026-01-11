@@ -11,11 +11,9 @@ public class PropertyJsonDto {
 
     private String parameter;
 
-    // В JSON это "values", а в Java мы хотим "possibleValues"
     @JsonProperty("values")
     private String possibleValues;
 
-    // В JSON это "on_default", а в Java "defaultValue"
     @JsonProperty("on_default")
     private String defaultValue;
 

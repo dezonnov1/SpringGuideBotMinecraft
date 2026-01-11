@@ -26,7 +26,6 @@ public class AboutHandler implements DialogHandler {
 
     @Override
     public boolean isApplicable(BotState currentState, Update update) {
-        // Проверяем нажатие кнопки SHOW_ABOUT
         return currentState == BotState.MAIN_MENU
                 && update.callbackQuery() != null
                 && BotAction.SHOW_ABOUT.getCallbackData().equals(update.callbackQuery().data());
@@ -39,7 +38,6 @@ public class AboutHandler implements DialogHandler {
 
         responses.add(new AnswerCallbackQuery(update.callbackQuery().id()));
 
-        // Text Block с MarkdownV2 (не забываем экранировать спецсимволы!)
         String text = """
                 *О разработчике*
                 Разработчик: Студент 3\\-го курса ИТСС Кузнецов Д\\.М\\.
@@ -61,13 +59,12 @@ public class AboutHandler implements DialogHandler {
                 .parseMode(ParseMode.MarkdownV2)
                 .linkPreviewOptions(previewOptions);
 
-        // Кнопка "Назад" ведет на BotAction.GO_TO_MENU
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
                 new InlineKeyboardButton("Назад в меню")
                         .callbackData(BotAction.GO_TO_MENU.getCallbackData())
         );
-        message.replyMarkup(keyboard);
 
+        message.replyMarkup(keyboard);
         responses.add(message);
 
         return new HandlerResult(responses, BotState.MAIN_MENU);

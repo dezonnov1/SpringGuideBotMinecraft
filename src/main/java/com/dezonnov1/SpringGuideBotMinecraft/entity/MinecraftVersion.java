@@ -22,7 +22,6 @@ public class MinecraftVersion {
     @Column(name = "version_name", nullable = false, unique = true)
     private String versionName;
 
-    // Обратная связь (обычно не обязательна, но может пригодиться)
     @ManyToMany(mappedBy = "versions")
     private Set<ServerProperty> properties;
 }
