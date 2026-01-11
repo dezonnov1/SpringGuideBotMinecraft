@@ -34,19 +34,19 @@ public class ServerPropertiesMenuHandler implements DialogHandler {
         responses.add(new AnswerCallbackQuery(update.callbackQuery().id()));
 
         String text = """
-                <b>⚙️ Настройка Server.properties</b>
+                *Настройка Server\\.properties*
                 
-                Этот файл отвечает за генерацию мира и правила сервера.
-                Бот добавит комментарии к каждому параметру.
+                Этот файл отвечает за генерацию мира и правила сервера\\.
+                Бот добавит комментарии к каждому параметру\\.
                 
-                ✍️ <b>Введите версию игры</b> (например: <code>1.16.5</code>), чтобы получить готовый файл.
+                *Введите версию игры* \\(например: `1\\.16\\.5`\\), чтобы получить готовый файл\\.
                 """;
 
-        SendMessage request = new SendMessage(chatId, text).parseMode(ParseMode.HTML);
+        SendMessage request = new SendMessage(chatId, text).parseMode(ParseMode.MarkdownV2);
 
         // Кнопка отмены с действием CANCEL_INPUT
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
-                new InlineKeyboardButton("🔙 Отмена / В меню")
+                new InlineKeyboardButton("В меню")
                         .callbackData(BotAction.CANCEL_INPUT.getCallbackData())
         );
         request.replyMarkup(keyboard);

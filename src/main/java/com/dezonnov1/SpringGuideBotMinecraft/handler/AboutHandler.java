@@ -42,7 +42,7 @@ public class AboutHandler implements DialogHandler {
         // Text Block с MarkdownV2 (не забываем экранировать спецсимволы!)
         String text = """
                 *О разработчике*
-                
+                Разработчик: Студент 3-го курса ИТСС Кузнецов Д.М.
                 Этот бот создан для помощи администраторам серверов Minecraft\\.
                 Проект написан на *Java \\(Spring Boot\\)*\\.
                 
@@ -63,7 +63,7 @@ public class AboutHandler implements DialogHandler {
 
         // Кнопка "Назад" ведет на BotAction.GO_TO_MENU
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup(
-                new InlineKeyboardButton("🔙 Назад в меню")
+                new InlineKeyboardButton("Назад в меню")
                         .callbackData(BotAction.GO_TO_MENU.getCallbackData())
         );
         message.replyMarkup(keyboard);

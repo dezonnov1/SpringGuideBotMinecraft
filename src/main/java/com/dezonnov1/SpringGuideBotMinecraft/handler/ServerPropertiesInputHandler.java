@@ -46,7 +46,7 @@ public class ServerPropertiesInputHandler implements DialogHandler {
 
             // Сравниваем с Enum CANCEL_INPUT
             if (BotAction.CANCEL_INPUT.getCallbackData().equals(data)) {
-                responses.add(new SendMessage(chatId, "👌 Ввод отменен. Возвращаюсь в главное меню."));
+                responses.add(new SendMessage(chatId, "Ввод отменен. Возвращаюсь в главное меню."));
                 responses.add(startHandler.getWelcomeMessage(chatId));
 
                 return new HandlerResult(responses, BotState.MAIN_MENU);
@@ -60,7 +60,7 @@ public class ServerPropertiesInputHandler implements DialogHandler {
 
             if (properties.isEmpty()) {
                 SendMessage error = new SendMessage(chatId,
-                        "❌ Для версии " + versionInput + " у меня нет данных.\n" +
+                        "Для версии " + versionInput + " у меня нет данных.\n" +
                                 "Попробуйте, например: 1.16.5 или 1.20.1");
                 return new HandlerResult(List.of(error), null);
             }
@@ -84,7 +84,7 @@ public class ServerPropertiesInputHandler implements DialogHandler {
 
             SendDocument doc = new SendDocument(chatId, fileBytes)
                     .fileName("server.properties")
-                    .caption("✅ Готово! Вот ваш файл настроек для версии " + versionInput);
+                    .caption("Готово! Вот ваш файл настроек для версии " + versionInput);
 
             responses.add(doc);
 

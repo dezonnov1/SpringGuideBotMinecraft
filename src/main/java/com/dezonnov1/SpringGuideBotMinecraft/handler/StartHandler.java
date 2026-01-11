@@ -58,15 +58,15 @@ public class StartHandler implements DialogHandler {
      */
     public SendMessage getWelcomeMessage(Long chatId) {
         String text = """
-                <b>МЕНЮ:</b>
-                Этот бот поможет в настройке сервера Minecraft.
-                <i>(Версии 1.12 и новее)</i>
+                *МЕНЮ:*
+                Этот бот поможет в настройке сервера Minecraft\\.
+                \\(Версии 1\\.12 и новее\\)
                 
-                Выберите действие ниже: 👇
+                Выберите действие ниже:
                 """;
 
         return new SendMessage(chatId, text)
-                .parseMode(ParseMode.HTML)
+                .parseMode(ParseMode.MarkdownV2)
                 .replyMarkup(getMainMenuKeyboard());
     }
 
