@@ -16,6 +16,12 @@ public enum BotAction {
     /** Кнопка "О разработчике" */
     SHOW_ABOUT("MENU_ABOUT"),
 
+    /** Главное меню аргументов */
+    SHOW_JVM_ARGS("MENU_JVM_ARGS"),
+
+    /** Переход подробнее об аргументах (страница)*/
+    SHOW_JVM_DETAILS("JVM_DETAILS_INIT"),
+
     /** Кнопка "Назад в меню" */
     GO_TO_MENU("GO_TO_MENU"),
 
@@ -24,4 +30,7 @@ public enum BotAction {
 
     /** Поле, хранящее строковое значение для Telegram */
     private final String callbackData;
+
+    /** Префикс для пагинации */
+    public static final String JVM_PAGE_PREFIX = "JVM_PAGE:";
 }
