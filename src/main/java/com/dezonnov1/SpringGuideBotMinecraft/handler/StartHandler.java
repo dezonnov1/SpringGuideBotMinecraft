@@ -48,7 +48,9 @@ public class StartHandler implements DialogHandler {
                 new InlineKeyboardButton("📂 Server.properties")
                         .callbackData(BotAction.SHOW_SERVER_PROPS.getCallbackData()),
                 new InlineKeyboardButton("ℹ️ О разработчике")
-                        .callbackData(BotAction.SHOW_ABOUT.getCallbackData())
+                        .callbackData(BotAction.SHOW_ABOUT.getCallbackData()),
+                new InlineKeyboardButton("☕ Аргументы запуска")
+                        .callbackData(BotAction.SHOW_JVM_ARGS.getCallbackData())
         );
     }
 

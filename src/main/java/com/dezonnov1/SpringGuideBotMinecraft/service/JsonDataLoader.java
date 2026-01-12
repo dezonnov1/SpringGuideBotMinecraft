@@ -1,8 +1,11 @@
 package com.dezonnov1.SpringGuideBotMinecraft.service;
 
+import com.dezonnov1.SpringGuideBotMinecraft.dto.JvmArgumentJsonDto;
 import com.dezonnov1.SpringGuideBotMinecraft.dto.PropertyJsonDto;
+import com.dezonnov1.SpringGuideBotMinecraft.entity.JvmArgument;
 import com.dezonnov1.SpringGuideBotMinecraft.entity.MinecraftVersion;
 import com.dezonnov1.SpringGuideBotMinecraft.entity.ServerProperty;
+import com.dezonnov1.SpringGuideBotMinecraft.repository.JvmArgumentRepository;
 import com.dezonnov1.SpringGuideBotMinecraft.repository.MinecraftVersionRepository;
 import com.dezonnov1.SpringGuideBotMinecraft.repository.ServerPropertyRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -25,14 +28,22 @@ public class JsonDataLoader implements CommandLineRunner {
 
     private final ServerPropertyRepository propertyRepository;
     private final MinecraftVersionRepository versionRepository;
+    private final JvmArgumentRepository jvmArgumentRepository; // Не забудьте добавить это поле!
     private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Если база не пустая - не загружаем
+        loadProperties();
+        loadJvmArguments();
+    }
+
+    /**
+     * Метод загрузки server.properties
+     */
+    private void loadProperties() {
         if (propertyRepository.count() > 0) {
-            log.info("База данных не пуста. Пропуск загрузки JSON.");
+            log.info("База данных server.properties не пуста. Пропуск загрузки.");
             return;
         }
 
@@ -50,16 +61,50 @@ public class JsonDataLoader implements CommandLineRunner {
                 savePropertyFromDto(dto);
             }
 
-            log.info("Успешно загружено {} параметров.", dtos.size());
+            log.info("Успешно загружено {} параметров server.properties.", dtos.size());
         } catch (Exception e) {
-            log.error("Ошибка загрузки JSON: ", e);
+            log.error("Ошибка загрузки server_properties.json: ", e);
         }
     }
 
+    /**
+     * Метод загрузки JVM аргументов
+     */
+    private void loadJvmArguments() {
+        if (jvmArgumentRepository.count() > 0) {
+            log.info("База данных JVM аргументов не пуста. Пропуск загрузки.");
+            return;
+        }
+
+        log.info("Загрузка данных из jvm_arguments.json...");
+
+        try (InputStream inputStream = getClass().getResourceAsStream("/jvm_arguments.json")) {
+            if (inputStream == null) {
+                log.warn("Файл jvm_arguments.json не найден (возможно, вы его еще не создали).");
+                return;
+            }
+
+            List<JvmArgumentJsonDto> dtos = objectMapper.readValue(inputStream, new TypeReference<>() {});
+
+            List<JvmArgument> arguments = dtos.stream()
+                    .map(dto -> JvmArgument.builder()
+                            .argument(dto.getArgument())
+                            .description(dto.getDescription())
+                            .build())
+                    .toList();
+
+            jvmArgumentRepository.saveAll(arguments);
+            log.info("Успешно загружено {} JVM аргументов.", arguments.size());
+
+        } catch (Exception e) {
+            log.error("Ошибка загрузки jvm_arguments.json: ", e);
+        }
+    }
+
+    // Вспомогательный метод сохранения (остался без изменений)
     private void savePropertyFromDto(PropertyJsonDto dto) {
         Set<MinecraftVersion> versionsForThisProperty = new HashSet<>();
 
-        // 1. Проходим по всем версиям из JSON и ищем/создаем их в БД
         if (dto.getVersions() != null) {
             for (String vName : dto.getVersions()) {
                 MinecraftVersion version = versionRepository.findByVersionName(vName)
@@ -70,7 +115,6 @@ public class JsonDataLoader implements CommandLineRunner {
             }
         }
 
-        // 2. Создаем параметр
         ServerProperty property = ServerProperty.builder()
                 .parameter(dto.getParameter())
                 .defaultValue(dto.getDefaultValue())     // Берется из "on_default"

@@ -20,7 +20,7 @@ services:
       - bot-network
 
   app:
-    image: dezonnov1/settings-guide-bot-minecraft:v1
+    image: dezonnov1/settings-guide-bot-minecraft:v2
 
     container_name: minecraft_bot_app
     restart: on-failure
