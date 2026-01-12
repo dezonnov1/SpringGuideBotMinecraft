@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest // Поднимает полный контекст приложения
-@ActiveProfiles("test") // (Опционально, если используете профили, но с test/resources/application.yml это происходит автоматически)
+@ActiveProfiles("test")
 class SpringGuideBotMinecraftApplicationTests {
 
     @Autowired
